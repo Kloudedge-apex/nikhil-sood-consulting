@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nikhil Sood, AI systems that know when to refuse</title>
+<meta name="description" content="Consulting for AI in regulated environments. Hospitals, EU fintech, AML. Systems that cite their source or decline to answer." />
+<meta name="robots" content="index, follow" />
+<meta property="og:title" content="Nikhil Sood, AI systems that know when to refuse" />
+<meta property="og:description" content="Consulting for AI in regulated environments. Hospitals, EU fintech, AML. Systems that cite their source or decline to answer." />
+<meta property="og:type" content="website" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 12 28 V 12 L 20 28 V 12' stroke='%231B1B21' stroke-width='2.5' fill='none' stroke-linecap='square'/%3E%3Cpath d='M 30 12 H 24 V 19 H 30 V 28 H 24' stroke='%231B1B21' stroke-width='2.5' fill='none' stroke-linecap='square'/%3E%3Crect x='32' y='25' width='4' height='4' fill='%230033FF'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Inherited from the portfolio token system */
+    --paper:#FAFAF8;
+    --ink:#1B1B21;
+    --rule:#DEDEE2;
+    --wash:#F1F1F3;
+    --muted:#6B6B75;
+    /* PASS only. Never used for anything else. */
+    --signal:#0033FF;
+    /* REFUSAL only. Never used for anything else. This is the whole thesis. */
+    --gate:#A05407;
+    --gate-wash:#FBF3E9;
+
+    --display:'Bricolage Grotesque',system-ui,sans-serif;
+    --body:'Inter',system-ui,sans-serif;
+    --mono:'Space Mono',ui-monospace,monospace;
+
+    --pad:clamp(1.25rem,5vw,6rem);
+    --sect:clamp(3.25rem,6.5vw,5.5rem);
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--body);font-size:16px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--signal);outline-offset:3px}
+
+  .wrap{max-width:1240px;margin:0 auto;padding-inline:var(--pad)}
+  .band{padding-block:var(--sect);border-top:1px solid var(--rule)}
+
+  /* ---------- nav ---------- */
+  .nav{
+    position:sticky;top:0;z-index:60;background:rgba(250,250,248,.88);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);
+  }
+  .nav-in{display:flex;align-items:center;justify-content:space-between;
+    padding:.85rem var(--pad);max-width:1240px;margin:0 auto}
+  .mark{font-family:var(--display);font-weight:800;letter-spacing:-.03em;font-size:1.05rem}
+  .mark span{color:var(--signal)}
+  .nav-links{display:flex;gap:1.6rem;font-family:var(--mono);font-size:.68rem;
+    letter-spacing:.14em;text-transform:uppercase}
+  .nav-links a{text-decoration:none;color:var(--muted);transition:color .2s}
+  .nav-links a:hover{color:var(--ink)}
+  @media(max-width:720px){.nav-links{gap:1rem;font-size:.6rem}}
+
+  /* ---------- hero ---------- */
+  .hero{padding-block:clamp(3rem,7vw,5rem) clamp(2.5rem,5vw,3.5rem)}
+  .hero-grid{display:grid;grid-template-columns:1.35fr .85fr;gap:clamp(2rem,5vw,4.5rem);align-items:start}
+  @media(max-width:940px){.hero-grid{grid-template-columns:1fr}}
+
+  .eyebrow{font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:.6rem;margin-bottom:1.6rem}
+  .dot{width:7px;height:7px;background:var(--signal);display:inline-block}
+
+  h1{
+    font-family:var(--display);font-weight:800;
+    font-size:clamp(2.15rem,8.2vw,6.2rem);line-height:.94;letter-spacing:-.042em;
+    margin:0 0 1.6rem;overflow-wrap:break-word;
+  }
+  h1 em{font-style:normal;color:var(--signal)}
+  .lede{font-size:clamp(1.02rem,1.6vw,1.2rem);max-width:34ch;color:#33333B;margin:0 0 2rem}
+  .lede strong{font-weight:600;color:var(--ink)}
+
+  .hero-cta{display:flex;flex-wrap:wrap;gap:.7rem}
+  .btn{
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;
+    padding:.95rem 1.5rem;border:1px solid var(--ink);background:var(--ink);color:var(--paper);
+    text-decoration:none;cursor:pointer;transition:background .2s,color .2s;
+  }
+  .btn:hover{background:var(--signal);border-color:var(--signal)}
+  .btn-ghost{background:transparent;color:var(--ink)}
+  .btn-ghost:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+  /* hero ledger: the product, rendered as the hero's evidence */
+  .ledger{border:1px solid var(--rule);background:#fff}
+  .ledger-hd{display:flex;justify-content:space-between;align-items:center;
+    padding:.6rem .9rem;border-bottom:1px solid var(--rule);font-family:var(--mono);
+    font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+  .ledger-body{padding:.35rem 0}
+  .lrow{display:grid;grid-template-columns:1fr auto;gap:.8rem;align-items:center;
+    padding:.6rem .9rem;font-size:.8rem;border-bottom:1px solid #F2F2F4;opacity:.25}
+  .lrow:last-child{border-bottom:0}
+  .lrow.on{opacity:1}
+  .lrow .claim{font-family:var(--body);line-height:1.35}
+  .verdict{font-family:var(--mono);font-size:.58rem;letter-spacing:.12em;
+    text-transform:uppercase;white-space:nowrap;padding:.2rem .45rem;border:1px solid}
+  .v-cite{color:var(--signal);border-color:var(--signal)}
+  .v-ref{color:var(--gate);border-color:var(--gate);background:var(--gate-wash)}
+  .lrow.refused .claim{text-decoration:line-through;text-decoration-thickness:1px;color:var(--muted)}
+  .ledger-ft{padding:.6rem .9rem;border-top:1px solid var(--rule);
+    font-family:var(--mono);font-size:.58rem;color:var(--muted);letter-spacing:.05em}
+
+  /* spec block: fills the hero's right column with terms, not decoration */
+  .spec{margin-top:1rem;border:1px solid var(--rule);background:transparent}
+  .spec div{display:grid;grid-template-columns:7.2rem 1fr;gap:.9rem;
+    padding:.7rem .9rem;border-bottom:1px solid var(--rule);
+    font-family:var(--mono);font-size:.66rem;line-height:1.5}
+  .spec div:last-child{border-bottom:0}
+  .spec dt{color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin:0}
+  .spec dd{margin:0;color:var(--ink)}
+
+  /* ---------- section heads ---------- */
+  .shead{display:flex;align-items:baseline;gap:1rem;margin-bottom:2.6rem;flex-wrap:wrap}
+  .shead h2{font-family:var(--display);font-weight:700;letter-spacing:-.035em;
+    font-size:clamp(1.7rem,3.6vw,2.7rem);margin:0}
+  .shead .note{font-family:var(--mono);font-size:.65rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--muted)}
+
+  /* ---------- the gate ---------- */
+  .gate-intro{max-width:56ch;color:#3A3A42;margin:0 0 2rem}
+  .chips{display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:2rem}
+  .chip{
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.02em;
+    padding:.7rem 1rem;border:1px solid var(--rule);background:#fff;color:#3A3A42;
+    cursor:pointer;transition:border-color .18s,color .18s,background .18s;text-align:left;
+  }
+  .chip:hover{border-color:var(--ink);color:var(--ink)}
+  .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+
+  .resolve{border:1px solid var(--rule);background:#fff;min-height:148px;position:relative;overflow:hidden;
+    display:flex;flex-direction:column;justify-content:center}
+  .resolve::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--rule);transition:background .3s}
+  .resolve[data-state="pass"]::before{background:var(--signal)}
+  .resolve[data-state="hold"]::before{background:var(--gate)}
+
+  .r-idle{padding:1.6rem clamp(1.6rem,3.6vw,3rem);color:var(--muted);font-family:var(--mono);font-size:.76rem;line-height:1.7}
+  .r-eval{padding:clamp(2rem,4vw,3rem);font-family:var(--mono);font-size:.75rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+  .r-body{padding:clamp(1.6rem,3.6vw,2.6rem) clamp(1.6rem,3.6vw,3rem)}
+
+  .r-verdict{font-family:var(--mono);font-size:.65rem;letter-spacing:.16em;text-transform:uppercase;
+    display:inline-flex;align-items:center;gap:.5rem;padding:.35rem .7rem;border:1px solid;margin-bottom:1.3rem}
+  .r-verdict.pass{color:var(--signal);border-color:var(--signal)}
+  .r-verdict.hold{color:var(--gate);border-color:var(--gate);background:var(--gate-wash)}
+
+  .r-title{font-family:var(--display);font-weight:700;letter-spacing:-.03em;
+    font-size:clamp(1.35rem,3vw,2rem);margin:0 0 .5rem;line-height:1.1}
+  .r-meta{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:1.4rem}
+  .r-scope{list-style:none;padding:0;margin:0 0 1.5rem;display:grid;gap:.5rem;max-width:62ch}
+  .r-scope li{display:flex;gap:.7rem;font-size:.93rem;line-height:1.5}
+  .r-scope li::before{content:"";flex:0 0 auto;width:6px;height:6px;margin-top:.55rem;background:var(--signal)}
+  .resolve[data-state="hold"] .r-scope li::before{background:var(--gate)}
+
+  .r-cite{border-top:1px solid var(--rule);padding-top:1rem;font-family:var(--mono);
+    font-size:.68rem;color:var(--muted);line-height:1.6;max-width:70ch}
+  .r-cite b{color:var(--ink);font-weight:700}
+  .r-cite .tag{color:var(--signal)}
+  .resolve[data-state="hold"] .r-cite .tag{color:var(--gate)}
+
+  /* ---------- evidence ---------- */
+  .ev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule)}
+  .ev{background:#fff;padding:1.7rem 1.5rem;display:flex;flex-direction:column;gap:.7rem}
+  .ev-tag{font-family:var(--mono);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--signal)}
+  .ev h3{font-family:var(--display);font-weight:700;font-size:1.12rem;letter-spacing:-.02em;margin:0}
+  .ev p{margin:0;font-size:.88rem;color:#42424B;line-height:1.5}
+  .ev dl{margin:.4rem 0 0;display:grid;grid-template-columns:auto 1fr;gap:.3rem .8rem;
+    font-family:var(--mono);font-size:.68rem}
+  .ev dt{color:var(--muted)}
+  .ev dd{margin:0;font-weight:700}
+
+  /* ---------- capability index ---------- */
+  .filters{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1.4rem}
+  .f{font-family:var(--mono);font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;
+    padding:.5rem .8rem;border:1px solid var(--rule);background:transparent;cursor:pointer;color:var(--muted);transition:.18s}
+  .f:hover{border-color:var(--ink);color:var(--ink)}
+  .f[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+
+  /* The table's min-content width was dragging the whole document wider than the
+     viewport on small screens, which clipped every section, not just the table. */
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tbl{width:100%;border-collapse:collapse;font-size:.87rem;min-width:min(100%,30rem)}
+  .tbl caption{text-align:left;font-family:var(--mono);font-size:.63rem;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);padding-bottom:.7rem}
+  .tbl th{text-align:left;font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--muted);font-weight:400;
+    border-bottom:1px solid var(--ink);padding:.5rem .7rem}
+  .tbl td{border-bottom:1px solid var(--rule);padding:.62rem .7rem;vertical-align:top}
+  .tbl tbody tr:hover{background:var(--wash)}
+  .n{font-family:var(--mono);color:var(--muted);font-size:.72rem;width:2.6rem}
+  .src{font-family:var(--mono);font-size:.63rem;letter-spacing:.06em;color:var(--signal);white-space:nowrap}
+  .band-c{font-family:var(--mono);font-size:.63rem;letter-spacing:.1em;color:var(--muted);white-space:nowrap}
+  @media(max-width:720px){
+    .tbl .hide-sm{display:none}
+    .tbl td,.tbl th{padding:.55rem .4rem}
+  }
+
+  /* ---------- refusals ---------- */
+  .no-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+  .no{border:1px solid var(--rule);border-left:3px solid var(--gate);background:var(--gate-wash);padding:1.2rem 1.3rem}
+  .no h3{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;margin:0 0 .45rem;color:var(--gate);text-transform:uppercase}
+  .no p{margin:0;font-size:.87rem;color:#4A4A52;line-height:1.5}
+
+  /* ---------- footer ---------- */
+  .foot{background:var(--ink);color:var(--paper);padding-block:clamp(3.5rem,8vw,6rem)}
+  .foot-grid{display:flex;justify-content:space-between;gap:2.5rem;flex-wrap:wrap}
+  .foot h2{font-family:var(--display);font-weight:800;letter-spacing:-.04em;
+    font-size:clamp(2rem,5vw,3.4rem);margin:0 0 1rem;max-width:16ch;line-height:1}
+  .foot p{color:#A5A5AE;max-width:38ch;margin:0 0 2rem;font-size:.95rem}
+  .foot a.btn{background:var(--signal);border-color:var(--signal);color:#fff}
+  .foot a.btn:hover{background:var(--paper);border-color:var(--paper);color:var(--ink)}
+  .foot-meta{font-family:var(--mono);font-size:.68rem;color:#8B8B95;display:grid;gap:.55rem;align-content:start}
+  .foot-meta a{color:#D5D5DC;text-decoration:none}
+  .foot-meta a:hover{color:#fff}
+  .foot-rule{margin-top:clamp(2.5rem,6vw,4rem);padding-top:1.2rem;border-top:1px solid #2E2E36;
+    font-family:var(--mono);font-size:.62rem;color:#71717B;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+
+  /* Small screens: mono strings with letter-spacing do not break on their own,
+     so they need an explicit escape hatch. */
+  @media(max-width:560px){
+    .spec div{grid-template-columns:1fr;gap:.2rem}
+    .shead{gap:.35rem}
+    .shead .note{font-size:.6rem}
+    .btn{padding:.85rem 1.05rem;font-size:.66rem}
+    .hero-cta{gap:.5rem}
+    .chip{font-size:.68rem;padding:.6rem .8rem}
+    .r-eval,.r-idle{font-size:.7rem}
+    .ledger-ft,.r-cite{overflow-wrap:anywhere}
+    .nav-links{gap:.85rem;font-size:.56rem}
+  }
+  @media(max-width:400px){
+    .nav-links a[href="#evidence"]{display:none}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *{transition-duration:.01ms !important;animation-duration:.01ms !important}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-in">
+    <div class="mark">Nikhil Sood<span>.</span></div>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#gate">Gate</a>
+      <a href="#evidence">Evidence</a>
+      <a href="#index">Index</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="wrap hero" id="top">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow"><span class="dot"></span> Available for engagements, Q3 2026</div>
+        <h1>I build AI that knows when to <em>refuse</em>.</h1>
+        <p class="lede">
+          Hospitals, EU fintech, AML. Seven years shipping systems into places where a
+          confident wrong answer costs more than no answer at all. Every claim
+          <strong>cites its source or gets struck</strong>.
+        </p>
+        <div class="hero-cta">
+          <a class="btn" href="#gate">Check if I'm a fit</a>
+          <a class="btn btn-ghost" href="#index">See all 49 services</a>
+        </div>
+      </div>
+
+      <div class="hero-side">
+      <aside class="ledger" aria-label="Claim verification sample">
+        <div class="ledger-hd"><span>Claim ledger</span><span id="lstat">live</span></div>
+        <div class="ledger-body" id="lbody"></div>
+        <div class="ledger-ft">Same gate my systems run. It also grades this page.</div>
+      </aside>
+
+      <dl class="spec" aria-label="Engagement terms">
+        <div><dt>Shape</dt><dd>Scoped outcomes, 2 to 16 weeks. Never open-ended.</dd></div>
+        <div><dt>Based</dt><dd>New Delhi, IST. Works European hours.</dd></div>
+        <div><dt>Start</dt><dd>One 30 minute call. No deck, no discovery invoice.</dd></div>
+        <div><dt>Leaves with</dt><dd>Runbooks, tests, and a team that can hold it.</dd></div>
+      </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE GATE -->
+  <section class="wrap band" id="gate">
+    <div class="shead">
+      <h2>The gate</h2>
+      <span class="note">Pick your situation. It resolves or it declines.</span>
+    </div>
+    <p class="gate-intro">
+      Most consultants say yes to everything and sort it out later. I would rather tell you
+      up front when the answer is no, so pick whichever line sounds most like your week.
+    </p>
+
+    <div class="chips" id="chips" role="group" aria-label="Your situation"></div>
+
+    <div class="resolve" id="resolve" data-state="idle" aria-live="polite">
+      <div class="r-idle">
+        awaiting input<br>
+        <span style="opacity:.6">nothing is asserted until a situation is selected</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVIDENCE -->
+  <section class="wrap band" id="evidence">
+    <div class="shead">
+      <h2>Evidence</h2>
+      <span class="note">Every engagement above cites one of these</span>
+    </div>
+    <div class="ev-grid">
+
+      <article class="ev">
+        <div class="ev-tag">HMC · 2025 · 8 months</div>
+        <h3>Radiology AI, Hamad Medical</h3>
+        <p>AI diagnostic assistant embedded in a live hospital radiology lab, in the clinical path rather than beside it.</p>
+        <dl>
+          <dt>Clinics</dt><dd>1,000+</dd>
+          <dt>Throughput</dt><dd>500+ scans/wk</dd>
+          <dt>Sensitivity</dt><dd>94%</dd>
+          <dt>Cost cut</dt><dd>78%</dd>
+        </dl>
+      </article>
+
+      <article class="ev">
+        <div class="ev-tag">Fintech · 2025 · 6 months</div>
+        <h3>Multi-agent credit rating</h3>
+        <p>Five cooperating agents drafting rating reports behind a citation gate. The direct ancestor of Sentinel.</p>
+        <dl>
+          <dt>Analyst time</dt><dd>70% cut</dd>
+          <dt>Volume</dt><dd>250 to 1,250/yr</dd>
+          <dt>Correctness</dt><dd>89%</dd>
+          <dt>Value</dt><dd>~$900K/yr</dd>
+        </dl>
+      </article>
+
+      <article class="ev">
+        <div class="ev-tag">Synaps · 2023 to 2025</div>
+        <h3>Fraud and KYC ML</h3>
+        <p>Detection across 50+ countries under EU AML5, FATF and OFAC. Fifteen production models on one MLflow pipeline.</p>
+        <dl>
+          <dt>Precision</dt><dd>96%</dd>
+          <dt>False pos.</dt><dd>23% lower</dd>
+          <dt>Deploy</dt><dd>2wk to 3d</dd>
+          <dt>Audits</dt><dd>No findings</dd>
+        </dl>
+      </article>
+
+      <article class="ev">
+        <div class="ev-tag">Nikxius / Sentinel · current</div>
+        <h3>Eval-gated agent platform</h3>
+        <p>Fourteen agents, five paying customers, six evaluators per run. Sentinel refuses to draft an AML narrative it cannot cite.</p>
+        <dl>
+          <dt>Hallucination</dt><dd>0.5 to 0.95</dd>
+          <dt>PII detect</dt><dd>0.7 to 1.0</dd>
+          <dt>Tests</dt><dd>1,200+</dd>
+          <dt>Run cost</dt><dd>$3.25/cust/day</dd>
+        </dl>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- CAPABILITY INDEX -->
+  <section class="wrap band" id="index">
+    <div class="shead">
+      <h2>Capability index</h2>
+      <span class="note"><span id="count">49</span> of 49 shown</span>
+    </div>
+    <div class="filters" id="filters" role="group" aria-label="Filter by band"></div>
+    <div class="tbl-wrap">
+    <table class="tbl">
+      <caption>Rate bands reflect buyer risk, not my effort. Band I work is priced roughly double band IV.</caption>
+      <thead>
+        <tr>
+          <th scope="col" class="n">#</th>
+          <th scope="col">Service</th>
+          <th scope="col" class="hide-sm">Proven on</th>
+          <th scope="col" class="hide-sm">Band</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    </div>
+  </section>
+
+  <!-- REFUSALS -->
+  <section class="wrap band" id="refusals">
+    <div class="shead">
+      <h2>What I will not sell you</h2>
+      <span class="note">Cheaper for both of us if you know now</span>
+    </div>
+    <div class="no-grid">
+      <div class="no">
+        <h3>Generic web and mobile builds</h3>
+        <p>I can do it. So can a hundred cheaper people who will do it better because it is all they do. Hire them.</p>
+      </div>
+      <div class="no">
+        <h3>Foundation model training</h3>
+        <p>Fine-tuning on your data, yes. Training a base model from scratch is a different discipline and a different budget.</p>
+      </div>
+      <div class="no">
+        <h3>24/7 managed operations</h3>
+        <p>I build it, instrument it, and hand it over with runbooks. I am not a support desk and one person should never be your on-call.</p>
+      </div>
+      <div class="no">
+        <h3>Staff augmentation by the month</h3>
+        <p>I take scoped outcomes with an end date. Open-ended seat-filling turns into the thing nobody owns.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot" id="contact">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <h2>Tell me what is breaking.</h2>
+        <p>
+          Send the messy version. Ambiguous operational problems are the job, and
+          a first call costs you nothing but thirty minutes.
+        </p>
+        <a class="btn" href="mailto:nikhil@kloudedge.co?subject=Engagement%20enquiry">nikhil@kloudedge.co</a>
+      </div>
+      <div class="foot-meta">
+        <div style="color:#71717B;letter-spacing:.14em;text-transform:uppercase;font-size:.6rem">Elsewhere</div>
+        <a href="https://linkedin.com/in/founderinaction" target="_blank" rel="noreferrer">LinkedIn</a>
+        <a href="https://kloudedge-apex.github.io/nikhil-sood-portfolio/" target="_blank" rel="noreferrer">Engineering portfolio</a>
+        <a href="https://github.com/Kloudedge-apex/evalharness" target="_blank" rel="noreferrer">evalharness, open source</a>
+        <div style="margin-top:.9rem;color:#71717B;letter-spacing:.14em;text-transform:uppercase;font-size:.6rem">Based</div>
+        <span style="color:#D5D5DC">New Delhi, IST. Works EU hours.</span>
+      </div>
+    </div>
+    <div class="foot-rule">
+      <span>Kloudedge Apex LLP</span>
+      <span>Claims on this page cite a shipped project or are struck through.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- hero claim ledger ---------- */
+  var CLAIMS = [
+    {t:"1,000+ clinics served, 500+ scans per week", v:"cited", s:"HMC radiology, 2025"},
+    {t:"70% cut in analyst time per credit report",  v:"cited", s:"Fintech engagement, 2025"},
+    {t:"96% precision on production fraud detection", v:"cited", s:"Synaps, 2023 to 2025"},
+    {t:"Hallucination score lifted 0.5 to 0.95",      v:"cited", s:"Nikxius eval suite"},
+    {t:"The best AI consultant on the market",        v:"refused", s:"no evidence record exists"}
+  ];
+  var lbody = document.getElementById("lbody");
+  CLAIMS.forEach(function(c,i){
+    var r = document.createElement("div");
+    r.className = "lrow" + (c.v === "refused" ? " refused" : "");
+    r.innerHTML = '<span class="claim">' + c.t + '</span>' +
+      '<span class="verdict ' + (c.v === "cited" ? "v-cite" : "v-ref") + '">' +
+      (c.v === "cited" ? "cited" : "refused") + '</span>';
+    r.title = c.s;
+    lbody.appendChild(r);
+  });
+  var lrows = lbody.querySelectorAll(".lrow");
+  if (reduced) {
+    lrows.forEach(function(r){ r.classList.add("on"); });
+    document.getElementById("lstat").textContent = "5 checked";
+  } else {
+    var li = 0;
+    (function step(){
+      if (li < lrows.length) {
+        lrows[li].classList.add("on");
+        li++;
+        document.getElementById("lstat").textContent = li + " checked";
+        setTimeout(step, 620);
+      }
+    })();
+  }
+
+  /* ---------- the gate ---------- */
+  var SITUATIONS = [
+    { k:"Our AI demo will not ship", pass:true, n:"01", title:"Production hardening", dur:"6 weeks",
+      scope:["Evaluator suite wired into every model call, with thresholds tuned against your own data",
+             "Fail-closed guardrails so bad output is blocked, not flagged and shipped anyway",
+             "Human approval gate with an auto-approve rate you can actually raise over time"],
+      cite:"Nikxius: six evaluators per run lifted hallucination <b>0.5 to 0.95</b> and PII detection <b>0.7 to 1.0</b>." },
+
+    { k:"An audit or examiner is coming", pass:true, n:"02", title:"Regulated AI readiness", dur:"4 weeks",
+      scope:["Per-claim citation so a reviewer can open the source behind every generated sentence",
+             "Audit trail capturing each inference, human decision and final outcome",
+             "Written technical summary in the shape your regulator expects to receive"],
+      cite:"Sentinel enforces refuse-or-cite across <b>1,200+ tests</b>. Synaps passed <b>EU audits with no findings</b>. HMC documented against the <b>FDA 510(k)</b> framework." },
+
+    { k:"Our LLM bill is out of control", pass:true, n:"03", title:"Inference cost reduction", dur:"2 weeks",
+      scope:["Prompt and semantic caching measured on your real traffic, not a benchmark",
+             "Model routing so the cheap model does the cheap work",
+             "Quantization and batching where the workload is yours to control"],
+      cite:"HMC inference went <b>$0.18 to $0.04</b> per scan, a 78% cut. Nikxius runs at <b>$3.25 per customer per day</b> on a 50% cache hit rate." },
+
+    { k:"We do not trust our model's output", pass:true, n:"04", title:"Eval harness build", dur:"3 weeks",
+      scope:["Scored evaluators for the failure modes that actually hurt you, not a generic pack",
+             "Blind scoring against a human baseline so the number means something",
+             "Regression gate in CI that blocks a release when quality drops"],
+      cite:"Credit rating agents blind-scored by a senior analyst against human reports: <b>89% correctness, 92% regulatory compliance</b>. evalharness is open source." },
+
+    { k:"We are building it from scratch", pass:true, n:"05", title:"Embedded build", dur:"8 to 16 weeks",
+      scope:["Discovery and scoping with the people who will actually use it",
+             "Full build: agents, orchestration, data path, interface, deployment",
+             "Handover with runbooks and training so your team owns it when I leave"],
+      cite:"HMC shipped in <b>8 months, 6 weeks ahead of schedule</b>, handed to a 3-engineer team. Credit rating platform delivered in <b>6 months</b>, worth ~$900K a year." },
+
+    { k:"Our AI function needs a technical lead", pass:true, n:"06", title:"Fractional technical lead", dur:"3 to 6 months, part time",
+      scope:["Architecture direction and build-versus-buy calls you can defend to a board",
+             "Hiring input, code review, and standards for the team you already have",
+             "Vendor and model evaluation against your constraints, not a vendor's demo"],
+      cite:"Founded and ran Kloudedge Apex delivering two enterprise AI programmes. Currently founder of Nikxius, <b>5 paying customers</b>." },
+
+    { k:"We need a mobile app", pass:false, n:null, title:"Not a fit", dur:"declined",
+      scope:["Mobile is not what I do, and a generalist doing it badly is worse than a specialist doing it well.",
+             "Hire a mobile studio or a contract iOS/Android engineer. Expect 6 to 12 weeks for a real v1.",
+             "If the app is a front end onto an AI system, come back for the AI half. That part is mine."],
+      cite:"No evidence record. I have not shipped production mobile and will not claim otherwise." },
+
+    { k:"We want to train our own base model", pass:false, n:null, title:"Not a fit", dur:"declined",
+      scope:["Pre-training a foundation model is a different discipline, team size and budget entirely.",
+             "Talk to an ML research group. Realistically you probably do not need this.",
+             "Fine-tuning an existing model on your data is a fit. That is engagement 05."],
+      cite:"No evidence record. My work is applied: fine-tuning, orchestration, evaluation, deployment." },
+
+    { k:"We need someone on call 24/7", pass:false, n:null, title:"Not a fit", dur:"declined",
+      scope:["One contractor should never be your production on-call. That is a single point of failure.",
+             "I will instrument the system, write the runbooks and train your team to hold the pager.",
+             "If you have nobody to hold it, hire that person first. I will help you scope the role."],
+      cite:"HMC and the credit rating platform were both handed to in-house teams with runbooks and training." },
+
+    { k:"We just want the cheapest option", pass:false, n:null, title:"Not a fit", dur:"declined",
+      scope:["I am not the cheapest and I will lose that comparison every time.",
+             "For commodity work, a marketplace contractor is genuinely the right call.",
+             "I am worth it when a wrong answer is expensive: regulated, audited or clinical."],
+      cite:"No evidence record. Pricing reflects buyer risk. If the risk is low, so is the case for hiring me." }
+  ];
+
+  var chipsEl = document.getElementById("chips");
+  var resolveEl = document.getElementById("resolve");
+  var timer = null;
+
+  SITUATIONS.forEach(function(s, i){
+    var b = document.createElement("button");
+    b.className = "chip";
+    b.type = "button";
+    b.textContent = s.k;
+    b.setAttribute("aria-pressed","false");
+    b.addEventListener("click", function(){ select(i); });
+    chipsEl.appendChild(b);
+  });
+
+  function render(s){
+    var cls = s.pass ? "pass" : "hold";
+    var label = s.pass ? "Pass, this is a fit" : "Hold, not a fit";
+    var head = s.pass
+      ? '<div class="r-meta">Engagement ' + s.n + ' &middot; ' + s.dur + '</div>'
+      : '<div class="r-meta">' + s.dur + '</div>';
+    resolveEl.setAttribute("data-state", s.pass ? "pass" : "hold");
+    resolveEl.innerHTML =
+      '<div class="r-body">' +
+        '<div class="r-verdict ' + cls + '">' + label + '</div>' +
+        '<h3 class="r-title">' + s.title + '</h3>' + head +
+        '<ul class="r-scope">' + s.scope.map(function(x){ return "<li><span>" + x + "</span></li>"; }).join("") + '</ul>' +
+        '<div class="r-cite"><span class="tag">' + (s.pass ? "cited" : "no citation") + '</span> &nbsp;' + s.cite + '</div>' +
+      '</div>';
+  }
+
+  function select(i, skipHash){
+    var btns = chipsEl.querySelectorAll(".chip");
+    btns.forEach(function(b,j){ b.setAttribute("aria-pressed", j === i ? "true" : "false"); });
+    var s = SITUATIONS[i];
+    /* Resolutions are linkable, so a specific engagement can be sent to a prospect. */
+    if (!skipHash && history.replaceState) history.replaceState(null,"","#fit-" + i);
+    if (timer) clearTimeout(timer);
+    if (reduced) { render(s); return; }
+    resolveEl.setAttribute("data-state","idle");
+    resolveEl.innerHTML = '<div class="r-eval">evaluating&hellip;</div>';
+    timer = setTimeout(function(){ render(s); }, 340);
+  }
+
+  var deep = /^#fit-(\d+)$/.exec(location.hash || "");
+  if (deep) {
+    var di = parseInt(deep[1], 10);
+    if (di >= 0 && di < SITUATIONS.length) { render(SITUATIONS[di]); select(di, true); }
+  }
+
+  /* ---------- capability index ---------- */
+  var S = [
+    [1,"AML / SAR narrative automation","Sentinel","I"],
+    [2,"Sanctions and PEP screening systems","Synaps","I"],
+    [3,"Fraud detection modelling","Synaps","I"],
+    [4,"Citation-gated generation (refuse-or-cite)","Sentinel","I"],
+    [5,"Compliance-grade audit trails","HMC","I"],
+    [6,"AI regulatory documentation (510k, EU AI Act)","HMC","I"],
+    [7,"AI governance and model risk frameworks","Synaps","I"],
+    [8,"Clinical AI deployment (DICOM / PACS)","HMC","I"],
+    [9,"Regulated AI readiness audit","Sentinel","I"],
+    [10,"Multi-agent system design and build","Credit","II"],
+    [11,"LLM evaluation harnesses","Nikxius","II"],
+    [12,"Guardrails and fail-closed policy engines","Nikxius","II"],
+    [13,"Human-in-the-loop approval design","Nikxius","II"],
+    [14,"LLM cost optimization","HMC","II"],
+    [15,"Agent memory systems (vector retrieval)","Credit","II"],
+    [16,"RAG design and retrieval quality","Nikxius","II"],
+    [17,"LLM observability and tracing","Nikxius","II"],
+    [18,"Prompt engineering and fine-tuning","Nikxius","II"],
+    [19,"Adversarial testing of LLM systems","Credit","II"],
+    [20,"POC to production hardening","Nikxius","II"],
+    [21,"Time series forecasting","IBM","III"],
+    [22,"Anomaly detection","Synaps","III"],
+    [23,"Risk scoring and classification models","Synaps","III"],
+    [24,"Feature pipeline engineering","IBM","III"],
+    [25,"MLOps pipelines (MLflow)","Synaps","III"],
+    [26,"Model monitoring and drift detection","HMC","III"],
+    [27,"Deployment cycle acceleration","Synaps","III"],
+    [28,"BI and self-service analytics","IBM","III"],
+    [29,"Multi-tenant SaaS architecture","Nikxius","IV"],
+    [30,"Full-stack product build","Nueton","IV"],
+    [31,"API design and integration connectors","Nikxius","IV"],
+    [32,"Async and queue infrastructure","Nikxius","IV"],
+    [33,"Real-time systems (WebSockets)","Nueton","IV"],
+    [34,"Azure architecture","Nikxius","IV"],
+    [35,"Kubernetes and Docker deployment","HMC","IV"],
+    [36,"CI/CD pipeline design","LES","IV"],
+    [37,"Observability stacks (Grafana, Prometheus)","HMC","IV"],
+    [38,"Cloud cost optimization","HMC","IV"],
+    [39,"Cloud credits procurement","Nikxius","IV"],
+    [40,"Forward-deployed engineering","HMC","V"],
+    [41,"Discovery and technical scoping","Credit","V"],
+    [42,"Stakeholder translation","HMC","V"],
+    [43,"Fractional CTO and advisory","Kloudedge","V"],
+    [44,"Team training and handover","HMC","V"],
+    [45,"Build versus buy evaluation","Kloudedge","V"],
+    [46,"AI technical due diligence","Kloudedge","V"],
+    [47,"Autonomous coding loop setup","LES","VI"],
+    [48,"Acceptance-gate engineering","LES","VI"],
+    [49,"AI dev tooling for engineering teams","LES","VI"]
+  ];
+  var BANDS = [
+    ["all","Everything"],["I","I · Regulated"],["II","II · AI systems"],
+    ["III","III · Applied ML"],["IV","IV · Platform"],["V","V · Advisory"],["VI","VI · Loop"]
+  ];
+  var rowsEl = document.getElementById("rows");
+  var filtEl = document.getElementById("filters");
+  var countEl = document.getElementById("count");
+  var active = "all";
+
+  BANDS.forEach(function(b){
+    var el = document.createElement("button");
+    el.className = "f"; el.type = "button"; el.textContent = b[1];
+    el.setAttribute("aria-pressed", b[0] === "all" ? "true" : "false");
+    el.addEventListener("click", function(){
+      active = b[0];
+      filtEl.querySelectorAll(".f").forEach(function(x,i){
+        x.setAttribute("aria-pressed", BANDS[i][0] === active ? "true" : "false");
+      });
+      draw();
+    });
+    filtEl.appendChild(el);
+  });
+
+  function draw(){
+    var list = S.filter(function(r){ return active === "all" || r[3] === active; });
+    rowsEl.innerHTML = list.map(function(r){
+      return '<tr><td class="n">' + String(r[0]).padStart(2,"0") + '</td>' +
+             '<td>' + r[1] + '</td>' +
+             '<td class="src hide-sm">' + r[2] + '</td>' +
+             '<td class="band-c hide-sm">' + r[3] + '</td></tr>';
+    }).join("");
+    countEl.textContent = list.length;
+  }
+  draw();
+})();
+</script>
+</body>
+</html>
