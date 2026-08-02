@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kloudedge: find out whether your AI quality numbers are telling the truth</title>
+<meta name="description" content="A recurring engagement, EUR 3,000 a month from signature, that scores your existing LLM-as-judge against human labels, wires a blocking gate into your CI, and keeps a one-page scorecard true every month after. Month one delivers the baseline." />
+<meta name="robots" content="index, follow" />
+<meta property="og:title" content="Kloudedge: find out whether your AI quality numbers are telling the truth" />
+<meta property="og:description" content="A recurring engagement, EUR 3,000 a month from signature, that scores your existing LLM-as-judge against human labels, wires a blocking gate into your CI, and keeps a one-page scorecard true every month after. Month one delivers the baseline." />
+<meta property="og:type" content="website" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 12 28 V 12 L 20 28 V 12' stroke='%231B1B21' stroke-width='2.5' fill='none' stroke-linecap='square'/%3E%3Cpath d='M 30 12 H 24 V 19 H 30 V 28 H 24' stroke='%231B1B21' stroke-width='2.5' fill='none' stroke-linecap='square'/%3E%3Crect x='32' y='25' width='4' height='4' fill='%230033FF'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Inherited from the portfolio token system */
+    --paper:#FAFAF8;
+    --ink:#1B1B21;
+    --rule:#DEDEE2;
+    --wash:#F1F1F3;
+    --muted:#6B6B75;
+    /* PASS only. Never used for anything else. */
+    --signal:#0033FF;
+    /* REFUSAL only. Never used for anything else. This is the whole thesis. */
+    --gate:#A05407;
+    --gate-wash:#FBF3E9;
+
+    --display:'Bricolage Grotesque',system-ui,sans-serif;
+    --body:'Inter',system-ui,sans-serif;
+    --mono:'Space Mono',ui-monospace,monospace;
+
+    --pad:clamp(1.25rem,5vw,6rem);
+    --sect:clamp(3.25rem,6.5vw,5.5rem);
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--body);font-size:16px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--signal);outline-offset:3px}
+
+  .wrap{max-width:1240px;margin:0 auto;padding-inline:var(--pad)}
+  .band{padding-block:var(--sect);border-top:1px solid var(--rule)}
+
+  /* ---------- nav ---------- */
+  .nav{
+    position:sticky;top:0;z-index:60;background:rgba(250,250,248,.88);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);
+  }
+  .nav-in{display:flex;align-items:center;justify-content:space-between;
+    padding:.85rem var(--pad);max-width:1240px;margin:0 auto}
+  .mark{font-family:var(--display);font-weight:800;letter-spacing:-.03em;font-size:1.05rem}
+  .mark span{color:var(--signal)}
+  .nav-links{display:flex;gap:1.6rem;font-family:var(--mono);font-size:.68rem;
+    letter-spacing:.14em;text-transform:uppercase}
+  .nav-links a{text-decoration:none;color:var(--muted);transition:color .2s}
+  .nav-links a:hover{color:var(--ink)}
+  @media(max-width:720px){.nav-links{gap:1rem;font-size:.6rem}}
+
+  /* ---------- hero ---------- */
+  .hero{padding-block:clamp(3rem,7vw,5rem) clamp(2.5rem,5vw,3.5rem)}
+  .hero-grid{display:grid;grid-template-columns:1.35fr .85fr;gap:clamp(2rem,5vw,4.5rem);align-items:start}
+  @media(max-width:940px){.hero-grid{grid-template-columns:1fr}}
+
+  .eyebrow{font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:.6rem;margin-bottom:1.6rem}
+  .dot{width:7px;height:7px;background:var(--signal);display:inline-block}
+
+  h1{
+    font-family:var(--display);font-weight:800;
+    font-size:clamp(2.15rem,8.2vw,6.2rem);line-height:.94;letter-spacing:-.042em;
+    margin:0 0 1.6rem;overflow-wrap:break-word;
+  }
+  h1 em{font-style:normal;color:var(--signal)}
+  .lede{font-size:clamp(1.02rem,1.6vw,1.2rem);max-width:34ch;color:#33333B;margin:0 0 2rem}
+  .lede strong{font-weight:600;color:var(--ink)}
+
+  .hero-cta{display:flex;flex-wrap:wrap;gap:.7rem}
+  .btn{
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;
+    padding:.95rem 1.5rem;border:1px solid var(--ink);background:var(--ink);color:var(--paper);
+    text-decoration:none;cursor:pointer;transition:background .2s,color .2s;
+  }
+  .btn:hover{background:var(--signal);border-color:var(--signal)}
+  .btn-ghost{background:transparent;color:var(--ink)}
+  .btn-ghost:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+  /* hero ledger: the product, rendered as the hero's evidence */
+  .ledger{border:1px solid var(--rule);background:#fff}
+  .ledger-hd{display:flex;justify-content:space-between;align-items:center;
+    padding:.6rem .9rem;border-bottom:1px solid var(--rule);font-family:var(--mono);
+    font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+  .ledger-body{padding:.35rem 0}
+  .lrow{display:grid;grid-template-columns:1fr auto;gap:.8rem;align-items:center;
+    padding:.6rem .9rem;font-size:.8rem;border-bottom:1px solid #F2F2F4}
+  .lrow:last-child{border-bottom:0}
+  .lrow .claim{font-family:var(--body);line-height:1.35}
+  .verdict{font-family:var(--mono);font-size:.58rem;letter-spacing:.12em;
+    text-transform:uppercase;white-space:nowrap;padding:.2rem .45rem;border:1px solid}
+  .v-cite{color:var(--signal);border-color:var(--signal)}
+  .v-ref{color:var(--gate);border-color:var(--gate);background:var(--gate-wash)}
+  .lrow.refused .claim{text-decoration:line-through;text-decoration-thickness:1px;color:var(--muted)}
+  .ledger-ft{padding:.6rem .9rem;border-top:1px solid var(--rule);
+    font-family:var(--mono);font-size:.58rem;color:var(--muted);letter-spacing:.05em;line-height:1.6}
+
+  /* spec block: fills a column with terms, not decoration */
+  .spec{margin-top:1rem;border:1px solid var(--rule);background:transparent}
+  .spec div{display:grid;grid-template-columns:7.2rem 1fr;gap:.9rem;
+    padding:.7rem .9rem;border-bottom:1px solid var(--rule);
+    font-family:var(--mono);font-size:.66rem;line-height:1.5}
+  .spec div:last-child{border-bottom:0}
+  .spec dt{color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin:0}
+  .spec dd{margin:0;color:var(--ink)}
+
+  /* ---------- section heads ---------- */
+  .shead{display:flex;align-items:baseline;gap:1rem;margin-bottom:2.6rem;flex-wrap:wrap}
+  .shead h2{font-family:var(--display);font-weight:700;letter-spacing:-.035em;
+    font-size:clamp(1.7rem,3.6vw,2.7rem);margin:0}
+  .shead .note{font-family:var(--mono);font-size:.65rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--muted)}
+
+  .gate-intro{max-width:56ch;color:#3A3A42;margin:0 0 2rem}
+
+  .chips{display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:0}
+  .chip{
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.02em;
+    padding:.7rem 1rem;border:1px solid var(--rule);background:#fff;color:#3A3A42;
+    transition:border-color .18s,color .18s,background .18s;text-align:left;
+  }
+  .chip:hover{border-color:var(--ink);color:var(--ink)}
+
+  /* ---------- evidence tiles (case proof, stats, deliverables all share this shape) ---------- */
+  .ev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule)}
+  .ev{background:#fff;padding:1.7rem 1.5rem;display:flex;flex-direction:column;gap:.7rem}
+  .ev-tag{font-family:var(--mono);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--signal)}
+  .ev h3{font-family:var(--display);font-weight:700;font-size:1.12rem;letter-spacing:-.02em;margin:0}
+  .ev p{margin:0;font-size:.88rem;color:#42424B;line-height:1.5}
+  .ev dl{margin:.4rem 0 0;display:grid;grid-template-columns:auto 1fr;gap:.3rem .8rem;
+    font-family:var(--mono);font-size:.68rem}
+  .ev dt{color:var(--muted)}
+  .ev dd{margin:0;font-weight:700}
+
+  /* ---------- boundary cards (what does not fit) ---------- */
+  .no-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+  .no{border:1px solid var(--rule);border-left:3px solid var(--gate);background:var(--gate-wash);padding:1.2rem 1.3rem}
+  .no h3{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;margin:0 0 .45rem;color:var(--gate);text-transform:uppercase}
+  .no p{margin:0;font-size:.87rem;color:#4A4A52;line-height:1.5}
+
+  /* ---------- footer ---------- */
+  .foot{background:var(--ink);color:var(--paper);padding-block:clamp(3.5rem,8vw,6rem)}
+  .foot-grid{display:flex;justify-content:space-between;gap:2.5rem;flex-wrap:wrap}
+  .foot h2{font-family:var(--display);font-weight:800;letter-spacing:-.04em;
+    font-size:clamp(2rem,5vw,3.4rem);margin:0 0 1rem;max-width:16ch;line-height:1}
+  .foot p{color:#A5A5AE;max-width:38ch;margin:0 0 2rem;font-size:.95rem}
+  .foot a.btn{background:var(--signal);border-color:var(--signal);color:#fff}
+  .foot a.btn:hover{background:var(--paper);border-color:var(--paper);color:var(--ink)}
+  .foot-meta{font-family:var(--mono);font-size:.68rem;color:#8B8B95;display:grid;gap:.55rem;align-content:start}
+  .foot-meta a{color:#D5D5DC;text-decoration:none}
+  .foot-meta a:hover{color:#fff}
+  .foot-rule{margin-top:clamp(2.5rem,6vw,4rem);padding-top:1.2rem;border-top:1px solid #2E2E36;
+    font-family:var(--mono);font-size:.62rem;color:#71717B;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+
+  /* ---------- new: this page has no component for a single published price ---------- */
+  .price-block{background:var(--wash);border:1px solid var(--rule);padding:1.5rem 1.75rem;display:inline-block}
+  .price-amount{font-family:var(--mono);font-weight:700;font-size:clamp(2.1rem,6vw,3.2rem);letter-spacing:-.02em;color:var(--ink);margin-top:.5rem}
+  .price-period{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:.35rem}
+
+  /* Small screens: mono strings with letter-spacing do not break on their own,
+     so they need an explicit escape hatch. */
+  @media(max-width:560px){
+    .spec div{grid-template-columns:1fr;gap:.2rem}
+    .shead{gap:.35rem}
+    .shead .note{font-size:.6rem}
+    .btn{padding:.85rem 1.05rem;font-size:.66rem}
+    .hero-cta{gap:.5rem}
+    .chip{font-size:.68rem;padding:.6rem .8rem}
+    .ledger-ft{overflow-wrap:anywhere}
+    .nav-links{gap:.85rem;font-size:.56rem}
+  }
+  @media(max-width:400px){
+    .nav-links a[href="#evidence"]{display:none}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *{transition-duration:.01ms !important;animation-duration:.01ms !important}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-in">
+    <a href="../" class="mark" style="text-decoration:none">Nikhil Sood<span>.</span></a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#gap">The gap</a>
+      <a href="#work">What you get</a>
+      <a href="#price">Price</a>
+      <a href="#evidence">Evidence</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="wrap hero" id="top">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow"><span class="dot"></span> Recurring engagement, not a scoped project</div>
+        <h1>Your dashboard says the AI is fine.<br>Has anyone checked <em>the thing doing the measuring</em>?</h1>
+        <p class="lede">
+          Most teams shipping LLM features already run an automated judge. Almost none have
+          <strong>scored that judge against a human</strong>. I do that, wire a blocking gate into
+          your CI, and hand you one page of numbers you can put in front of a board or an auditor.
+          Then I keep it true every month after.
+        </p>
+        <div class="hero-cta">
+          <a class="btn" href="https://cal.com/nikhilsood/30min?overlayCalendar=true">Book 30 minutes</a>
+          <a class="btn btn-ghost" href="mailto:nikhil@kloudedge.co?subject=Kloudedge%20quality%20baseline">Email nikhil@kloudedge.co</a>
+        </div>
+      </div>
+
+      <div class="hero-side">
+        <aside class="ledger" aria-label="Measured claims, Nikxius production">
+          <div class="ledger-hd"><span>Claim ledger</span><span>3 tracked</span></div>
+          <div class="ledger-body">
+            <div class="lrow" title="14 agents, 5 paying customers. Measured before and after one evaluator cycle.">
+              <span class="claim">Hallucination score, SDR drafts: 0.50 to 0.95</span>
+              <span class="verdict v-cite">cited</span>
+            </div>
+            <div class="lrow" title="Same deployment. Six evaluators firing on every traced LLM call.">
+              <span class="claim">PII detection: 0.70 to 1.00</span>
+              <span class="verdict v-cite">cited</span>
+            </div>
+            <div class="lrow" title="This is the number month one of this engagement produces.">
+              <span class="claim">Your judge, scored against human labels</span>
+              <span class="verdict v-ref">not yet measured</span>
+            </div>
+          </div>
+          <div class="ledger-ft">Hallucination and PII deltas: 14 agents, 5 paying customers, six evaluators
+            firing on every traced LLM call. The third line is what month one of this engagement produces.
+            We do not publish invented figures.</div>
+        </aside>
+
+        <dl class="spec" aria-label="Engagement terms">
+          <div><dt>Shape</dt><dd>One flat retainer. Not scoped hours, not a day rate.</dd></div>
+          <div><dt>Cadence</dt><dd>Every month from signature, until either side gives 30 days notice.</dd></div>
+          <div><dt>Start</dt><dd>One 30 minute call. No deck, no discovery invoice.</dd></div>
+          <div><dt>Leaves with</dt><dd>A CI gate and a scorecard your team owns.</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE GAP -->
+  <section class="wrap band" id="gap">
+    <div class="shead">
+      <h2>The problem is not that you have no evals. It is that nobody has audited them.</h2>
+      <span class="note">The gap</span>
+    </div>
+    <p class="gate-intro">
+      An LLM-as-judge is itself a model with a failure rate. Left unvalidated it drifts toward
+      verbose answers, prefers outputs that resemble its own, and is sensitive to how the rubric
+      was phrased. A judge nobody has checked produces a number nobody should act on.
+    </p>
+
+    <div class="ev-grid">
+      <article class="ev">
+        <div class="ev-tag">LangChain &middot; State of Agent Engineering &middot; n=1,340</div>
+        <h3>53.3%</h3>
+        <p>of teams already use an LLM as a judge in production.</p>
+      </article>
+      <article class="ev">
+        <div class="ev-tag">Same survey</div>
+        <h3>59.8%</h3>
+        <p>also run human review on top of it. The tooling is not the missing piece.</p>
+      </article>
+      <article class="ev">
+        <div class="ev-tag">Same survey</div>
+        <h3>~1 in 3</h3>
+        <p>still name output quality as their single largest blocker to shipping.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- WHAT YOU GET -->
+  <section class="wrap band" id="work">
+    <div class="shead">
+      <h2>Not a deck. Not a roadmap. Running code in your repo and one page of numbers.</h2>
+      <span class="note">What you get</span>
+    </div>
+    <p class="gate-intro">Six deliverables, in this order, inside month one.</p>
+
+    <div class="ev-grid">
+      <article class="ev">
+        <div class="ev-tag">Step 01</div>
+        <h3>Intake, 90 minutes</h3>
+        <p>What ships, who complains about it, and your last three production failures, in your own words.</p>
+      </article>
+      <article class="ev">
+        <div class="ev-tag">Step 02</div>
+        <h3>A labelled golden set</h3>
+        <p>100 to 200 cases, built from your own failure logs on synthetic or fully redacted fixtures, each
+          one traceable to the log it came from. If your logs genuinely support fewer than 100, the floor
+          becomes what they support, stated with the reason, not padded to hit a number.</p>
+      </article>
+      <article class="ev">
+        <div class="ev-tag">Step 03 &middot; this is the one that matters</div>
+        <h3>Judge validation</h3>
+        <p>Your existing LLM-as-judge, scored against human labels.</p>
+      </article>
+      <article class="ev">
+        <div class="ev-tag">Step 04</div>
+        <h3>A CI gate</h3>
+        <p>The harness wired into your CI as a blocking gate, committed to your repository and owned by you.</p>
+      </article>
+      <article class="ev">
+        <div class="ev-tag">Step 05</div>
+        <h3>A one-page scorecard</h3>
+        <p>The measured number today, broken out per failure mode, with the measurement method written down.</p>
+      </article>
+      <article class="ev">
+        <div class="ev-tag">Step 06</div>
+        <h3>An unmeasured-claims list</h3>
+        <p>Every quality claim currently live on your marketing site that the harness cannot yet substantiate.</p>
+      </article>
+    </div>
+
+    <div style="margin-top:2.6rem">
+      <span class="ev-tag">From month two</span>
+      <p class="gate-intro" style="margin-top:.7rem">
+        The same engagement keeps the golden set current, re-validates the judge against fresh human
+        labels, and re-runs the gate against every model change, all inside a hard cap of two days a
+        month. I am not obliged to exceed the cap, and unused days do not roll over to the next month.
+        Work beyond the cap waits for next month or becomes new scope, agreed separately in writing. The
+        cap is the whole model: it is what keeps the price fixed while your product keeps changing.
+      </p>
+    </div>
+
+    <div style="margin-top:1.6rem">
+      <span class="ev-tag">Data handling</span>
+      <p class="gate-intro" style="margin-top:.7rem">
+        This runs on synthetic or fully redacted fixtures. No production data leaves your environment,
+        no personal data is processed, so there is no Article 28 agreement, no SCCs and no TIA on your
+        side.
+      </p>
+    </div>
+  </section>
+
+  <!-- PRICE -->
+  <section class="wrap band" id="price">
+    <div class="shead">
+      <h2>Published, fixed, and the same for everyone.</h2>
+      <span class="note">Price</span>
+    </div>
+    <p class="gate-intro">No day rate, no discovery call before you know the number, no scoping phase billed as consulting.</p>
+
+    <div style="display:flex;gap:clamp(1.5rem,4vw,3rem);flex-wrap:wrap;align-items:flex-start;margin-bottom:2rem">
+      <div class="price-block">
+        <span class="ev-tag">Recurring engagement</span>
+        <div class="price-amount">&euro;3,000</div>
+        <div class="price-period">per month, from signature</div>
+      </div>
+
+      <dl class="spec" aria-label="Price terms" style="margin-top:0;flex:1;min-width:240px">
+        <div><dt>Month 1</dt><dd>Four days. Delivers the six items above.</dd></div>
+        <div><dt>Month 2+</dt><dd>Hard cap of two days a month. Unused days do not roll over.</dd></div>
+        <div><dt>Notice</dt><dd>Thirty days, either side, any time.</dd></div>
+        <div><dt>Published</dt><dd>One number, the same for every client.</dd></div>
+      </dl>
+    </div>
+
+    <div class="no">
+      <h3>Not a scoped project</h3>
+      <p>
+        The main site prices scoped outcomes by risk band, two to sixteen weeks, because each of those
+        engagements has a start date, an end date, and a scope that varies client to client. This page
+        is a different kind of thing: a standing engagement, one product, one published number, running
+        every month for as long as either side wants it. If what you need has an end date, that is
+        scoped work, and the <a href="../">banded pricing on the main site</a> applies. If what you need
+        is a quality baseline that stays current for as long as your model keeps changing, this is the
+        page for that. The two do not compete for the same budget line.
+      </p>
+    </div>
+  </section>
+
+  <!-- WHO DOES THE WORK -->
+  <section class="wrap band" id="evidence">
+    <div class="shead">
+      <h2>One engineer, who built the thing he is selling and runs it in production.</h2>
+      <span class="note">Who does the work</span>
+    </div>
+
+    <p class="gate-intro">
+      I am Nikhil Sood. I built a multi-tenant AI platform to five paying customers as its only
+      engineer, then built the measurement layer underneath it because I could not otherwise tell
+      whether it was working.
+    </p>
+    <p class="gate-intro">
+      I then built a second product, a compliance drafting tool for regulated filings whose defining
+      behaviour is refusing to write any claim it cannot bind to a source.
+      It has zero paying customers and zero signed pilots to date: the discipline is proven, the
+      revenue is not. That is the same instinct this engagement sells: a number without a method
+      behind it is a liability, not a metric.
+    </p>
+    <p class="gate-intro" style="margin-bottom:2.4rem">
+      You work with me directly. There is no team behind this and no account manager in front of it.
+    </p>
+
+    <div class="ev-grid">
+      <article class="ev">
+        <div class="ev-tag">Nikxius &middot; production</div>
+        <h3>14 agents, 5 paying customers</h3>
+        <p>One engineer. Consent-gated outbound under CAN-SPAM, human approval before any send.</p>
+        <dl>
+          <dt>Evaluators</dt><dd>6 per call</dd>
+          <dt>Hallucination</dt><dd>0.50 to 0.95</dd>
+          <dt>PII detect</dt><dd>0.70 to 1.00</dd>
+        </dl>
+        <div class="chips" style="margin-top:.3rem">
+          <span class="chip">Hallucination</span><span class="chip">PII</span><span class="chip">Prompt injection</span>
+          <span class="chip">Toxicity</span><span class="chip">Bias</span><span class="chip">Correctness</span>
+        </div>
+      </article>
+
+      <article class="ev">
+        <div class="ev-tag">Public repo &middot; evalharness</div>
+        <h3>A standalone public harness</h3>
+        <p>Different code from the six evaluators above, rewritten from scratch over synthetic fixtures:
+          citation, injection, PII and support, with 23 known bugs reintroduced as adversarial mutants
+          the test suite must catch by name.
+          <a href="https://github.com/Kloudedge-apex/evalharness" target="_blank" rel="noreferrer">github.com/Kloudedge-apex/evalharness</a>.
+          Clone it and try to break it.</p>
+        <dl>
+          <dt>Mutants</dt><dd>23, named</dd>
+          <dt>Shares code with production</dt><dd>none</dd>
+        </dl>
+        <div class="chips" style="margin-top:.3rem">
+          <span class="chip">Citation</span><span class="chip">Injection</span><span class="chip">PII</span><span class="chip">Support</span>
+        </div>
+      </article>
+
+      <article class="ev">
+        <div class="ev-tag">Synaps &middot; 2023 to 2025</div>
+        <h3>Fraud and KYC ML</h3>
+        <p>Two years of production fraud and KYC ML inside an EU-regulated platform. Models built
+          alongside compliance, not presented to it afterward.</p>
+      </article>
+
+      <article class="ev">
+        <div class="ev-tag">HMC &amp; credit rating</div>
+        <h3>Hospital AI and a ratings workflow</h3>
+        <p>An AI system shipped into a hospital clinical path, and a multi-agent credit rating workflow.</p>
+      </article>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot" id="contact">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <h2>Bring your three worst production failures.</h2>
+        <p>
+          Twenty-five minutes. If it turns out your evals are already honest, I will tell you that
+          and there will be nothing to sell. That outcome is more common than you would think, and
+          it is still worth the call.
+        </p>
+        <a class="btn" href="https://cal.com/nikhilsood/30min?overlayCalendar=true">Book 30 minutes</a>
+        <p style="margin-top:1rem;font-size:.85rem">
+          <a href="mailto:nikhil@kloudedge.co?subject=Kloudedge%20quality%20baseline" style="color:#D5D5DC">or email nikhil@kloudedge.co</a>
+        </p>
+      </div>
+      <div class="foot-meta">
+        <div style="color:#71717B;letter-spacing:.14em;text-transform:uppercase;font-size:.6rem">Elsewhere</div>
+        <a href="../">Full site, other engagements</a>
+      </div>
+    </div>
+    <div class="foot-rule">
+      <span>Kloudedge &middot; evidence-gated AI engineering</span>
+      <span><a href="https://github.com/Kloudedge-apex/evalharness" target="_blank" rel="noreferrer">evalharness</a> &middot; <a href="mailto:nikhil@kloudedge.co">nikhil@kloudedge.co</a></span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
