@@ -10,10 +10,27 @@
 <meta property="og:description" content="A recurring engagement, EUR 3,000 a month from signature, that scores your existing LLM-as-judge against human labels, wires a blocking gate into your CI, and keeps a one-page scorecard true every month after. Month one delivers the baseline." />
 <meta property="og:type" content="website" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 12 28 V 12 L 20 28 V 12' stroke='%231B1B21' stroke-width='2.5' fill='none' stroke-linecap='square'/%3E%3Cpath d='M 30 12 H 24 V 19 H 30 V 28 H 24' stroke='%231B1B21' stroke-width='2.5' fill='none' stroke-linecap='square'/%3E%3Crect x='32' y='25' width='4' height='4' fill='%230033FF'/%3E%3C/svg%3E" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
+  /* Self-hosted. See fonts/SOURCES.md for the licence (SIL OFL 1.1, all three) and source URL for
+     each file. Bricolage Grotesque and Inter are variable fonts, one file covers every weight below,
+     same as fonts.googleapis.com itself serves them; Space Mono is static, hence two files. */
+  @font-face{font-family:'Bricolage Grotesque';font-style:normal;font-weight:500;font-display:swap;
+    src:url('fonts/bricolage-grotesque.woff2') format('woff2')}
+  @font-face{font-family:'Bricolage Grotesque';font-style:normal;font-weight:700;font-display:swap;
+    src:url('fonts/bricolage-grotesque.woff2') format('woff2')}
+  @font-face{font-family:'Bricolage Grotesque';font-style:normal;font-weight:800;font-display:swap;
+    src:url('fonts/bricolage-grotesque.woff2') format('woff2')}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;
+    src:url('fonts/inter.woff2') format('woff2')}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;
+    src:url('fonts/inter.woff2') format('woff2')}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;
+    src:url('fonts/inter.woff2') format('woff2')}
+  @font-face{font-family:'Space Mono';font-style:normal;font-weight:400;font-display:swap;
+    src:url('fonts/space-mono-400.woff2') format('woff2')}
+  @font-face{font-family:'Space Mono';font-style:normal;font-weight:700;font-display:swap;
+    src:url('fonts/space-mono-700.woff2') format('woff2')}
+
   :root{
     /* Inherited from the portfolio token system */
     --paper:#FAFAF8;
@@ -349,8 +366,8 @@
       <span class="ev-tag">Data handling</span>
       <p class="gate-intro" style="margin-top:.7rem">
         This runs on synthetic or fully redacted fixtures. No production data leaves your environment,
-        no personal data is processed, so there is no Article 28 agreement, no SCCs and no TIA on your
-        side.
+        and no personal data is processed by me, so your DPO can assess Article 28, SCCs and a
+        transfer impact assessment against that, rather than against a black box.
       </p>
     </div>
   </section>
@@ -471,7 +488,7 @@
       <div>
         <h2>Bring your three worst production failures.</h2>
         <p>
-          Twenty-five minutes. If it turns out your evals are already honest, I will tell you that
+          Thirty minutes. If it turns out your evals are already honest, I will tell you that
           and there will be nothing to sell. That outcome is more common than you would think, and
           it is still worth the call.
         </p>
