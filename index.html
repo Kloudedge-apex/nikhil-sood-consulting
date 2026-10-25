@@ -218,6 +218,31 @@
   .foot p{color:#A5A5AE;max-width:38ch;margin:0 0 2rem;font-size:.95rem}
   .foot a.btn{background:var(--signal);border-color:var(--signal);color:#fff}
   .foot a.btn:hover{background:var(--paper);border-color:var(--paper);color:var(--ink)}
+  /* enquiry form: neutral on ink; blue stays the button colour the footer already used, amber stays refusal-only */
+  .foot-main{flex:1 1 520px;max-width:620px}
+  .enq{display:grid;gap:.9rem;margin:0 0 1.4rem;position:relative}
+  .enq label{display:grid;gap:.35rem;font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:#A5A5AE}
+  .enq input,.enq select,.enq textarea{font-family:var(--body);font-size:.95rem;letter-spacing:0;text-transform:none;color:var(--paper);
+    background:#24242B;border:1px solid #3A3A44;border-radius:0;padding:.7rem .8rem;width:100%;min-height:2.9rem}
+  .enq textarea{min-height:8rem;resize:vertical;line-height:1.5}
+  .enq select{appearance:auto}
+  .enq input:focus-visible,.enq select:focus-visible,.enq textarea:focus-visible{outline:2px solid #D5D5DC;outline-offset:1px}
+  .enq [aria-invalid="true"]{border-style:dashed;border-color:#D5D5DC}
+  .enq-row{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+  .enq .enq-check{grid-template-columns:auto 1fr;align-items:start;gap:.7rem;font-family:var(--body);font-size:.8rem;
+    letter-spacing:0;text-transform:none;line-height:1.5}
+  .enq-check input{width:1.05rem;height:1.05rem;min-height:0;margin-top:.15rem;padding:0;accent-color:#D5D5DC}
+  .enq-fine{font-size:.78rem;line-height:1.55;color:#8B8B95;max-width:62ch}
+  .enq-fine summary{cursor:pointer;color:#D5D5DC;margin-top:.35rem}
+  .foot .enq-fine p{color:#8B8B95;font-size:.78rem;margin:.5rem 0 0;max-width:62ch}
+  .enq .btn{justify-self:start;background:var(--signal);border-color:var(--signal);color:#fff;cursor:pointer}
+  .enq .btn:hover{background:var(--paper);border-color:var(--paper);color:var(--ink)}
+  .enq .btn[disabled]{opacity:.6;cursor:progress}
+  .foot .enq-status{margin:0;max-width:none;padding:.7rem .9rem;background:#24242B;border-left:3px solid #D5D5DC;color:var(--paper);font-size:.9rem}
+  .enq .hp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+  .foot .enq-alt{font-size:.85rem;margin:0;max-width:none}
+  .enq-alt a{color:#D5D5DC}
+  @media(max-width:560px){.enq-row{grid-template-columns:1fr}}
   .foot-meta{font-family:var(--mono);font-size:.68rem;color:#8B8B95;display:grid;gap:.55rem;align-content:start}
   .foot-meta a{color:#D5D5DC;text-decoration:none}
   .foot-meta a:hover{color:#fff}
@@ -431,13 +456,53 @@
 <footer class="foot" id="contact">
   <div class="wrap">
     <div class="foot-grid">
-      <div>
+      <div class="foot-main">
         <h2>Tell me what is breaking.</h2>
         <p>
           Send the messy version. Ambiguous operational problems are the job, and
           a first call costs you nothing but thirty minutes.
         </p>
-        <a class="btn" href="mailto:nikhil@kloudedge.co?subject=Engagement%20enquiry">nikhil@kloudedge.co</a>
+        <!-- Posts to the enquiry desk (projects/enquiry-desk in the BlackSwan workspace). -->
+        <form class="enq" data-enquiry data-offer-from-hash action="https://black-pebble-07212c40f.3.azurestaticapps.net/api/enquiry" method="post"
+              data-success="Thank you. It arrived, and I will reply by email.">
+          <input type="hidden" name="brand" value="sood">
+          <input type="hidden" name="return_to" value="https://kloudedge-apex.github.io/nikhil-sood-consulting/#contact">
+          <div class="hp" aria-hidden="true"><label>Leave this empty<input name="company_site" tabindex="-1" autocomplete="off"></label></div>
+          <div class="enq-row">
+            <label>Name<input name="name" required maxlength="120" autocomplete="name"></label>
+            <label>Work email<input name="email" type="email" required maxlength="254" autocomplete="email"></label>
+          </div>
+          <div class="enq-row">
+            <label>Company<input name="company" maxlength="160" autocomplete="organization"></label>
+            <label>Situation<select name="offer" id="enq-offer">
+              <option value="">Not sure yet</option>
+              <option value="fit-0">Production hardening</option>
+              <option value="fit-1">Regulated AI readiness</option>
+              <option value="fit-2">Inference cost reduction</option>
+              <option value="fit-3">Eval harness build</option>
+              <option value="fit-4">Embedded build</option>
+              <option value="fit-5">Fractional technical lead</option>
+              <option value="other">Something else</option>
+            </select></label>
+          </div>
+          <label>What is breaking<textarea name="message" required minlength="10" maxlength="5000" rows="5"
+            placeholder="The messy version is fine. Leave out credentials and personal data."></textarea></label>
+          <label class="enq-check"><input type="checkbox" name="ads_ok" value="yes"><span>If an ad brought me here, you may report this enquiry to Google Ads as a conversion. Only the ad click identifier is shared, never my message.</span></label>
+          <div class="enq-fine">
+            I read every message. To prepare a reply, an AI assistant looks up public information about your company, not about you.
+            <details><summary>How your message is handled</summary>
+              <p>Kloudedge Apex LLP keeps your message in a private enquiry record hosted on Microsoft Azure. An AI assistant
+              (Claude, by Anthropic) reads it and researches your company from public sources such as its website and press
+              coverage. New enquiries are announced in an internal Slack workspace. Records are deleted 12 months after the last
+              contact unless we work together, or sooner if you ask at nikhil@kloudedge.co. Nothing about your enquiry goes to
+              Google unless you tick the box above, and then only the ad click identifier.</p>
+            </details>
+          </div>
+          <button type="submit" class="btn">Send it</button>
+          <p class="enq-status" data-enquiry-status role="status" tabindex="-1" hidden></p>
+        </form>
+        <p class="enq-alt">Or email <a href="mailto:nikhil@kloudedge.co?subject=Engagement%20enquiry">nikhil@kloudedge.co</a>,
+          or <a href="https://cal.com/nikhilsood/30min">book 30 minutes</a>.</p>
       </div>
       <div class="foot-meta">
         <div style="color:#71717B;letter-spacing:.14em;text-transform:uppercase;font-size:.6rem">Elsewhere</div>
@@ -593,6 +658,9 @@
     var s = SITUATIONS[i];
     /* Resolutions are linkable, so a specific engagement can be sent to a prospect. */
     if (!skipHash && history.replaceState) history.replaceState(null,"","#fit-" + i);
+    /* Carry the chosen situation into the enquiry form below. */
+    var enqOffer = document.getElementById("enq-offer");
+    if (enqOffer && s.pass) enqOffer.value = "fit-" + i;
     if (timer) clearTimeout(timer);
     if (reduced) { render(s); return; }
     resolveEl.setAttribute("data-state","idle");
@@ -694,5 +762,6 @@
   draw();
 })();
 </script>
+<script src="enquiry.js" data-brand="sood" defer></script>
 </body>
 </html>
